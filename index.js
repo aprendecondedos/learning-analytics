@@ -1,6 +1,8 @@
-/*jslint node: true, indent: 2 */
 'use strict';
 
+/**
+ * Module dependencies.
+ */
 const restify = require('restify');
 const bunyan  = require('bunyan');
 const routes  = require('./routes/');
