@@ -16,6 +16,11 @@ module.exports = function(grunt) {
         NODE_ENV: 'production'
       }
     },
+    run: {
+      dev: {
+        args: ['server.js', '--debug', '--harmony']
+      }
+    },
     jasmineNodejs: {
       options: {
         specNameSuffix: 'spec.js'
@@ -49,10 +54,16 @@ module.exports = function(grunt) {
   });
 
   grunt.loadNpmTasks('grunt-jscs');
+  grunt.loadNpmTasks('grunt-run');
+
+  // Load NPM tasks
+  require('load-grunt-tasks')(grunt);
 
   // Default task(s).
   grunt.registerTask('default', [
-    'jscs'
+    'env:dev',
+    'jscs',
+    'run:dev'
   ]);
 
 };

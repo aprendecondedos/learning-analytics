@@ -6,19 +6,24 @@
     "bunyan": "^0.22.1",
     "chalk": "^1.1.3",
     "glob": "^7.0.3",
+    "load-grunt-tasks": "^3.5.0",
+    "lodash": "^4.11.1",
     "mongoose": "^4.4.14",
     "restify": "~4.0.3"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
+    "grunt-env": "^0.4.4",
     "grunt-jasmine-nodejs": "^1.3.0",
     "grunt-jscs": "^2.8.0",
-    "grunt-jslint": "^1.1.12"
+    "grunt-jslint": "^1.1.12",
+    "grunt-run": "^0.6.0"
   },
   "scripts": {
     "test": "grunt",
-    "start": "SET \"NODE_ENV=development\" && grunt && node --debug --harmony index.js",
-    "production": "SET \"NODE_ENV=production\" && node --harmony index.js",
-    "local": "SET NODE_ENV=local nodemon --debug --harmony index.js"
+    "start": "grunt default",
+    "development": "SET \"NODE_ENV=development\" && grunt && node --debug --harmony server.js",
+    "production": "SET \"NODE_ENV=production\" && node --harmony server.js",
+    "local": "SET NODE_ENV=local nodemon --debug --harmony server.js"
   }
 }

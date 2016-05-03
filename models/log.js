@@ -1,12 +1,11 @@
-/*
- var mongoose = require('mongoose');
- var Schema = mongoose.Schema;
+'use strict';
 
- var sampleSchema = new Schema({
- _id: Number,
- FirstName: String,
- LastName: String
- });
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
- module.exports = mongoose.model('collectionName', sampleSchema);
- */
+var logSchema = new Schema({
+  data: String
+});
+
+mongoose.model('Log', logSchema);
+

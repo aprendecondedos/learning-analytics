@@ -1,19 +1,26 @@
 'use strict';
-var fs = require('fs');
+const fs = require('fs');
+const mongoose = require('mongoose');
+const Log = mongoose.model('Log');
 
 module.exports = function(server) {
   server.get('/api/log/:name', function(req, res, next) {
-    console.log('testing');
     console.log(req.params);
+
+    //const log = new Log();
+    //log.data = req.params.name;
+    //log.save(function(err) {
+    //  console.log(err);
+    //});
 
     //res.send(200, req.params);
     res.json(req.params);
     return next();
   });
 
-  //fs.readdirSync('./routes').forEach(function (file) {
-  //  if (file.substr(-3, 3) === '.js' && file !== 'index.js') {
-  //    require('./' + file.replace('.js', ''))(server);
-  //  }
-  //});
+  server.post('/api/log/', function(req, res, next) {
+    console.log(req.body);
+    res.json(req.body);
+    return next();
+  });
 };

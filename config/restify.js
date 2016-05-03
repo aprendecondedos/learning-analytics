@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 const bunyan = require('bunyan');
-const config = require('configure');
+const config = require('./config')();
 const restify = require('restify');
 const path = require('path');
 
@@ -82,40 +82,18 @@ module.exports.initFormatterHeaders = function(app) {
  */
 module.exports.initRestifyVariables = function(app) {
   app.name = 'dedos-analytics';
-  return {
-    name: 'dedos-analytics',
-    log: log,
-    formatters: {
-      'application/json': function(req, res, body, cb) {
-        res.setHeader('Cache-Control', 'must-revalidate');
+  this.initLogger(app);
+  this.initFormatterHeaders(app);
+};
 
-        // Does the client *explicitly* accepts application/json?
-        var sendPlainText = (req.header('Accept').split(/, */).indexOf('application/json') === -1);
-
-        // Send as plain text
-        if (sendPlainText) {
-          res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        }
-
-        // Send as JSON
-        if (!sendPlainText) {
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        }
-
-        if (body instanceof Error) {
-          res.statusCode = body.statusCode || 500;
-          body = body.message;
-        } else if (typeof (body) === 'object') {
-          body = body.task || JSON.stringify(body);
-        } else {
-          body = body.toString();
-        }
-
-        res.setHeader('Content-Length', Buffer.byteLength(body));
-        return cb(null, body);
-      }
-    }
-  };
+/**
+ * Configure the modules server routes
+ */
+module.exports.initModulesServerRoutes = function(app) {
+  // Globbing routing files
+  config.files.server.routes.forEach(function(routePath) {
+    require(path.resolve(routePath))(app);
+  });
 };
 
 /**
@@ -128,11 +106,11 @@ module.exports.init = function(db) {
   // Initialize Restify configuration
   this.initRestify(app);
 
-  // Initialize formmatters headers
-  this.initFormatterHeaders(app);
-
   // Initialize Restify local variables
   this.initRestifyVariables(app);
+
+  // Initialize modules server routes
+  this.initModulesServerRoutes(app);
 
   // Initialize Modules configuration
   this.initModulesConfiguration(app);

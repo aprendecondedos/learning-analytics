@@ -1,5 +1,13 @@
 'use strict';
 const glob = require('glob');
+const _ = require('lodash');
+const path = require('path');
+
+const assets = {
+  models: 'models/**/*.js',
+  configs: 'config/*.js',
+  routes: 'routes/*.js'
+};
 
 /**
  * Get files by glob patterns
@@ -44,14 +52,21 @@ var getGlobbedPaths = function(globPatterns, excludes) {
   return output;
 };
 
-const assets = {
-  models: 'modules/*/server/models/**/*.js'
-};
-
 /**
  * Set configuration object
  */
-module.exports = function(config, assets) {
+module.exports = function() {
+  //var config = require('./default.js');
+
+  // Get the default config
+  var defaultConfig = require(path.join(process.cwd(), 'config/env/default'));
+
+  // Get the current config
+  var environmentConfig = require(path.join(process.cwd(), 'config/env/env.' + process.env.NODE_ENV)) || {};
+
+  // Merge config files
+  var config = _.merge(defaultConfig, environmentConfig);
+
   // Appending files
   config.files = {
     server: {},
@@ -59,5 +74,13 @@ module.exports = function(config, assets) {
   };
 
   // Setting Globbed model files
-  config.files.server.models = getGlobbedPaths(assets.server.models);
+  config.files.server.models = getGlobbedPaths(assets.models);
+
+  // Setting Globbed route files
+  config.files.server.routes = getGlobbedPaths(assets.routes);
+
+  // Setting Globbed config files
+  config.files.server.configs = getGlobbedPaths(assets.config);
+
+  return config;
 };

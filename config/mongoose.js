@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
-const config = require('../config');
+const config = require('./config')();
 const chalk = require('chalk');
 const path = require('path');
 const mongoose = require('mongoose');

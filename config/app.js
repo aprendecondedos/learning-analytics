@@ -1,5 +1,8 @@
 'use strict';
+const chalk = require('chalk');
+const config = require('./config')();
 const restify = require('./restify');
+const mongoose = require('./mongoose');
 
 // Initialize Models
 mongoose.loadModels();
