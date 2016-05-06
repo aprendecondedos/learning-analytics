@@ -3,6 +3,7 @@ const chalk = require('chalk');
 const config = require('./config')();
 const restify = require('./restify');
 const mongoose = require('./mongoose');
+const pm2 = require('./pm2');
 
 // Initialize Models
 mongoose.loadModels();

@@ -2,6 +2,7 @@
 const glob = require('glob');
 const _ = require('lodash');
 const path = require('path');
+const fs = require('fs');
 
 const assets = {
   models: 'models/**/*.js',
@@ -62,10 +63,14 @@ module.exports = function() {
   var defaultConfig = require(path.join(process.cwd(), 'config/env/default'));
 
   // Get the current config
-  var environmentConfig = require(path.join(process.cwd(), 'config/env/env.' + process.env.NODE_ENV)) || {};
+  var environmentConfig = require(path.join(process.cwd(), 'config/env/env.' + (process.env.NODE_ENV) + '.js'));
 
   // Merge config files
   var config = _.merge(defaultConfig, environmentConfig);
+  config = _.merge(config,
+    (fs.existsSync(path.join(process.cwd(), 'config/env/local-' + process.env.NODE_ENV + '.js'))
+      && require(path.join(process.cwd(), 'config/env/local-' + process.env.NODE_ENV + '.js')))
+    || {});
 
   // Appending files
   config.files = {
