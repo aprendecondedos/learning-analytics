@@ -2,13 +2,13 @@
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-var Log = mongoose.model('Log');
 /**
  * Logging Mongo Schema
  * event: {create, update, delete}
  */
 var projectSchema = new Schema({
-  projectId: String,
+  projectId: Schema.Types.ObjectId,
+  updatedDate: { type: Date, default: Date.now },
 
   // Listado de usuarios que han terminado la actividad
   users: [{
@@ -17,4 +17,4 @@ var projectSchema = new Schema({
   }]
 });
 
-Log.discriminator('Project', projectSchema);
+mongoose.model('Project', projectSchema);

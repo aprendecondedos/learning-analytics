@@ -43,19 +43,29 @@ api.log = function(req, res, next) {
 
   // se envia una respuesta inmediata al cliente
   res.send(200);
-  console.log(req.body);
+
+  // más adelante se procesa los datos
+  //console.log(req.body);
 
   // a partir de la respuesta se hace todo el proceso
   // @TODO
   const log = new Log();
+  log.scope = req.body.scope;
+  log.event = req.body.event;
+  delete req.body.scope;
+  delete req.body.event;
+
   log.data = req.body || req.params;
-  log.ip = ip;
+  log.ipAddress = ip;
   log.save(function(err) {
     if (err) {
       console.log(err);
     }
   });
 
-  console.log('pasando por middleware');
+  // se le pasa el objeto log al middleware
+  req.log = log;
+
+  console.log('SCOPE: ' + log.scope + ', EVENT: ' + log.event);
   next();
 };

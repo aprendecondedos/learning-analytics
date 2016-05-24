@@ -25,6 +25,12 @@ var logSchema = new Schema({
   //user: {
   //  type: Number
   //},
+  scope: {
+    type: String
+  },
+  event: {
+    type: String
+  },
   data: Schema.Types.Mixed,
   ipAddress: {
     type: String,
@@ -36,11 +42,8 @@ var logSchema = new Schema({
       message: '{VALUE} is not a valid IP'
     }
   },
-  updatedDate: { type: Date, default: Date.now }
+  time: { type: Date, default: Date.now }
 });
-/**
- * Hooks
- */
 
 mongoose.model('Log', logSchema);
 

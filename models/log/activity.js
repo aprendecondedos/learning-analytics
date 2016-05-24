@@ -14,8 +14,10 @@ var activitySchema = new Schema({
   users: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' },
     isCorrect: { type: Boolean, default: false },
-    finishTime: { type: Boolean, default: false },
-    tries: { type: Number, default: 0 }
+    isFinished: { type: Boolean, default: false },
+    finishTime: { type: Date },
+    tries: { type: Number, default: 0 },
+    answerId: { type: Schema.Types.ObjectId, ref: 'Answer' }
   }]
 });
 
@@ -23,9 +25,24 @@ var activitySchema = new Schema({
  * Hooks
  */
 activitySchema.pre('save', function(next, req) {
-  console.log(req);
   next();
 });
+
+/**
+ * Statics
+ */
+activitySchema.statics = {
+  /**
+   * Buscar proyecto por id
+   *
+   * @param {ObjectId} options
+   */
+  load: function(options, cb) {
+    const criteria = options.criteria || { _id: options };
+    return this.findOne(criteria)
+      .exec(cb);
+  }
+};
 
 mongoose.model('Activity', activitySchema);
 
