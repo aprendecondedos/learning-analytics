@@ -57,8 +57,9 @@ function onLoadActivity(data) {
         return true;
       }
 
-      // Busqueda del usuario dentro del objeto
+      // busqueda del usuario dentro del array activity.users
       if (_.findIndex(activity.users, (o) => o.user == data.user._id) === -1) {
+        // se añade a la actividad
         activity.users.push({
           user: data.user._id
         });
@@ -85,7 +86,19 @@ function onAnswerActivity(data) {
   .then(function(activity) {
       let user = _.find(activity.users, (o) => o.user == data.user._id);
       if (data.isFinished) {
-        user.tries += 1;
+        //user.tries.count += 1;
+        //user.tries.finishTime = new Date();
+        //
+        //// duración de la actividad en segundos
+        //user.tries.duration = (new Date(user.finishTime) - new Date(user.startTime)) / 1000;
+      }
+      if (user.tokens) {
+        let token = data.tokens[Object.keys(data.tokens)];
+        user.tokens.push({
+          token: token.id,
+          isValid: token.valid,
+          order: user.tokens.length + 1
+        });
       }
 
       user.isCorrect = data.isFinished ? data.isCorrect : false;
