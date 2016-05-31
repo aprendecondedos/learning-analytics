@@ -15,32 +15,18 @@ var activitySchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User' },
     isCorrect: { type: Boolean, default: false },
     isFinished: { type: Boolean, default: false },
-    startTime: { type: Date, default: Date.now },
-    finishTime: { type: Date },
-    duration: { type: Number, default: 0 }, // en segundos
-    fails: [{
-      token: { type: Schema.Types.ObjectId, ref: 'Token' },
-      order: { type: Number, default: 0 }
-    }],
-    valid: [{
-      token: { type: Schema.Types.ObjectId, ref: 'Token' },
-      order: { type: Number, default: 0 }
-    }],
-    tokens: [{
-      token: { type: Schema.Types.ObjectId, ref: 'Token' },
-      isValid: { type: Boolean, default: false },
-      order: { type: Number, default: 0 }
-    }],
-    //tries: { type: Number, default: 0 },
-    tries: {
-      count: { type: Number, default: 0 },
-      times: [{
-        starTime: { type: Date },
-        finishTime: { type: Date },
-        duration: { type: Number, default: 0 } // en segundos
+    tries: [{
+      answerId: { type: Schema.Types.ObjectId, ref: 'Answer' },
+      startTime: { type: Date },
+      finishTime: { type: Date },
+      duration: { type: Number, default: 0 }, // en segundos
+      tokens: [{
+        token: { type: Schema.Types.ObjectId, ref: 'Token' },
+        isValid: { type: Boolean, default: false },
+        order: { type: Number, default: 0 }
       }]
-    },
-    answerId: { type: Schema.Types.ObjectId, ref: 'Answer' }
+    }],
+    answers: [{ type: Schema.Types.ObjectId, ref: 'Answer' }]
   }]
 });
 

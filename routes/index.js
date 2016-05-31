@@ -28,14 +28,28 @@ module.exports = function(app) {
     //res.json(req.body);
     return next();
   }, api.log);
+
+  // API Learning Analytics
   app.post('/api/activity', api.log, activity.process);
 
-  //app.param('activityId', activity.load);
+  //app.post('/api/project', api.log, project.process);
+
+  //app.get('/api/activity', activity.list);
+  app.param('activityId', activity.activityById);
+
+  app.get('/api/activity/:activityId', activity.read);
+  app.get('/api/activity/:activityId/user/:userId', activity.user.read);
+  app.get('/api/activity/:activityId/answers', activity.answers);
+
   //app.get('/api/activity/:activityId', api.log, activity.getData);
 };
 
 var api = {};
 api.log = function(req, res, next) {
+  if (req.method !== 'POST') {
+    next();
+  }
+
   var ip = req.headers['x-forwarded-for'] ||
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
