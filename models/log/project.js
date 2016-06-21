@@ -12,8 +12,7 @@ var projectSchema = new Schema({
 
   // Listado de usuarios que han terminado la actividad
   users: [{
-    user: { type: String, default: '' },
-    finished: { type: Boolean, default: false }
+    user: { type: String, default: '' }
   }]
 });
 

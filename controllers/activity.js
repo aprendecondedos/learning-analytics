@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+const restify = require('restify');
 const mongoose = require('mongoose');
 const Activity = mongoose.model('Activity');
 
@@ -16,7 +17,7 @@ exports.read = function(req, res) {
   res.json(activity);
 };
 
-exports.user = {
+const usersController = {
   read: function(req, res) {
     const userId = req.params.userId;
     const activity = req.activity;
@@ -24,6 +25,9 @@ exports.user = {
     res.json(user);
   }
 };
+
+exports.users = usersController;
+
 //{
 //  "avgDuration": 2.974,
 //  "correct": 2,
@@ -93,18 +97,14 @@ exports.answers = function(req, res) {
 
 exports.activityById = function(req, res, next, id) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).send({
-      message: 'Activity is invalid'
-    });
+    return next(new restify.NotFoundError('Activity is invalid'));
   }
 
   Activity.findOne({ activityId: id }).exec(function(err, activity) {
     if (err) {
       return next(err);
     } else if (!activity) {
-      return res.status(404).send({
-        message: 'No activity with that identifier has been found'
-      });
+      return next(new restify.NotFoundError('No activity with that identifier has been found'));
     }
 
     req.activity = activity;
@@ -163,10 +163,10 @@ function onLoadActivity(data) {
       }
 
       // busqueda del usuario dentro del array activity.users
-      if (_.findIndex(activity.users, (o) => o.user == data.user._id) === -1) {
+      if (_.findIndex(activity.users, (o) => o.user == data.user.id) === -1) {
         // se añade a la actividad
         activity.users.push({
-          user: data.user._id
+          user: data.user.id
         });
       }
 
@@ -189,7 +189,7 @@ function onLoadActivity(data) {
 function onAnswerActivity(data) {
   let result = loadActivity(data.activity._id)
   .then(function(activity) {
-      let user = _.find(activity.users, (o) => o.user == data.user._id);
+      let user = _.find(activity.users, (o) => o.user == data.user.id);
 
       // Se inicializa el array tries en el primer intento o para los siguientes
       if (!user.tries.length || user.tries[user.tries.length - 1].finishTime) {

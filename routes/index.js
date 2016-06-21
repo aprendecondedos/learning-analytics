@@ -2,6 +2,7 @@
 const fs = require('fs');
 const mongoose = require('mongoose');
 const activity = require('../controllers/activity');
+const project = require('../controllers/project');
 const Log = mongoose.model('Log');
 
 //const Activity = mongoose.model('Activity');
@@ -31,14 +32,20 @@ module.exports = function(app) {
 
   // API Learning Analytics
   app.post('/api/activity', api.log, activity.process);
+  app.post('/api/project', api.log, project.process);
 
   //app.post('/api/project', api.log, project.process);
+  app.param('projectId', project.projectById);
+  app.get('/api/project/:projectId', project.read);
+  app.get('/api/project/:projectId/users', project.users.readAll);
+  app.get('/api/project/:projectId/users/:userId', project.users.readByUserId);
+
+  //app.get('/api/project/:projectId/actvities', project.activities.read);
 
   //app.get('/api/activity', activity.list);
   app.param('activityId', activity.activityById);
-
   app.get('/api/activity/:activityId', activity.read);
-  app.get('/api/activity/:activityId/user/:userId', activity.user.read);
+  app.get('/api/activity/:activityId/users/:userId', activity.users.read);
   app.get('/api/activity/:activityId/answers', activity.answers);
 
   //app.get('/api/activity/:activityId', api.log, activity.getData);

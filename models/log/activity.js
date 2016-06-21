@@ -9,6 +9,7 @@ var Log = mongoose.model('Log');
  */
 var activitySchema = new Schema({
   activityId: Schema.Types.ObjectId,
+  projectId: Schema.Types.ObjectId,
 
   // Listado de usuarios con propiedades como análisis
   users: [{
