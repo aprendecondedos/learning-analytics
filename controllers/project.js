@@ -12,33 +12,95 @@ const webConnection = mongoose.createConnection('mongodb://193.147.62.217:5858/d
 });
 const Schema = new mongoose.Schema({});
 const Project = webConnection.model('Project', Schema);
+const User = webConnection.model('User', Schema);
 
 /**
  * Route middlewares
  */
 exports.projectById = function(req, res, next, id) {
-  // READ
-  //ProjectModelWeb.find({ _id: id }, function(err, project) {
-  //  console.log(project);
-  //});
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(new restify.NotFoundError('Project is invalid'));
   }
 
-  let totalUsers = 0;
-  let totalActivities = 0;
-  let totalActivitiesDone = 0;
+  //
+  Project.findOne({ _id: id }, function(err, project) {
+    if (err) {
+      return next(err);
+    } else if (!project) {
+      return next(new restify.NotFoundError('No project with that identifier has been found'));
+    }
+
+    //req.project = project;
+    req.project = project.toObject();
+    next();
+  });
+
+  //
+  //let totalUsers = 0;
+  //let totalActivities = 0;
+  //let totalActivitiesDone = 0;
+  //let usersFinished = 0;
+  //Project.findOne({ _id: id })
+  //.then(function(projectDoc) {
+  //    let project = projectDoc.toObject();
+  //    totalUsers = project.players.length;
+  //    totalActivities = project.activities.length;
+  //    let criteria = { activityId: { $in: project.activities } };
+  //    return Activity.find(criteria);
+  //  })
+  //.then(function(activities) {
+  //    totalActivitiesDone = activities.length;
+  //    let duration = 0;
+  //    let correct = 0;
+  //    let failed = 0;
+  //    let finishedArr = [];
+  //    let result = {};
+  //    activities.forEach(function(activity, index) {
+  //      let activityResume = getActivityResume(activity);
+  //      duration += activityResume.avgDuration;
+  //      correct += activityResume.correct;
+  //      failed += activityResume.failed;
+  //      finishedArr.push(activityResume.finished);
+  //      if (index === 5 - 1) {
+  //        let finishedArrByAsc = finishedArr.sort((a, b) => b - a);
+  //        usersFinished = finishedArrByAsc[finishedArrByAsc.length - 1];
+  //      }
+  //    });
+  //
+  //    // resultados totales de las actividades
+  //    let notAnswered = (totalUsers * totalActivitiesDone) - (correct + failed);
+  //    let total = notAnswered + (correct + failed);
+  //    duration /= totalActivitiesDone;
+  //
+  //    return { duration, correct, failed, notAnswered, total };
+  //  })
+  //.then(function(activities) {
+  //    let finished = usersFinished;
+  //    let notFinished = totalUsers - finished;
+  //    let total = totalUsers;
+  //    let users = {};
+  //    users = { finished, notFinished, total };
+  //    return { users, activities };
+  //  })
+  //.then(function(result) {
+  //    res.send(result);
+  //  })
+  //.catch(function(err) {
+  //    console.log(err);
+  //    next(new restify.NotFoundError('No project with that identifier has been found'));
+  //  });
+};
+
+exports.read = function(req, res) {
+  const project = req.project;
   let usersFinished = 0;
-  Project.findOne({ _id: id })
-  .then(function(projectDoc) {
-      let project = projectDoc.toObject();
-      totalUsers = project.players.length;
-      totalActivities = project.activities.length;
-      let criteria = { activityId: { $in: project.activities } };
-      return Activity.find(criteria);
-    })
-  .then(function(activities) {
-      totalActivitiesDone = activities.length;
+
+  let totalUsers = project.players.length;
+  let totalActivities = project.activities.length;
+  let activityFindCriteria = { activityId: { $in: project.activities } };
+  Activity.find(activityFindCriteria)
+    .then(function(activities) {
+      let totalActivitiesDone = activities.length || 0;
       let duration = 0;
       let correct = 0;
       let failed = 0;
@@ -56,14 +118,14 @@ exports.projectById = function(req, res, next, id) {
         }
       });
 
-      // resultados totales de las actividades
+      // resultados totales del proyecto
       let notAnswered = (totalUsers * totalActivitiesDone) - (correct + failed);
       let total = notAnswered + (correct + failed);
       duration /= totalActivitiesDone;
 
       return { duration, correct, failed, notAnswered, total };
     })
-  .then(function(activities) {
+    .then(function(activities) {
       let finished = usersFinished;
       let notFinished = totalUsers - finished;
       let total = totalUsers;
@@ -71,32 +133,128 @@ exports.projectById = function(req, res, next, id) {
       users = { finished, notFinished, total };
       return { users, activities };
     })
-  .then(function(result) {
+    .then(function(result) {
       res.send(result);
     })
-  .catch(function(err) {
+    .catch(function(err) {
       console.log(err);
-      next(new restify.NotFoundError('No project with that identifier has been found'));
+      next(new restify.NotFoundError('No activities with that identifier has been found'));
     });
-
-  ////
-
-  //ProjectAPI.findOne({ projectId: id }).exec(function(err, project) {
-  //  if (err) {
-  //    return next(err);
-  //  } else if (!project) {
-  //    return next(new restify.NotFoundError('No project with that identifier has been found'));
-  //  }
-  //
-  //  req.project = project;
-  //  next();
-  //});
 };
 
-exports.read = function(req, res) {
-  const project = req.project ? req.project.toJSON() : {};
-  res.json(project);
+//app.get('/api/project/:projectId/timing', project.timing.read);
+//app.get('/api/project/:projectId/timing/users', project.timing.readByUsers);
+//app.get('/api/project/:projectId/timing/user/:userId', project.timing.readByUserId);
+const timingController = {
+  /**
+   * Tiempo total del proyecto y por cada actividad
+   *
+   * @param req
+   * @param res
+   */
+  read: function(req, res) {
+    const project = req.project;
+    let activityFindCriteria = { activityId: { $in: project.activities } };
+    Activity.find(activityFindCriteria)
+      .then(function(activities) {
+        let projectDuration = 0;
+        let activitiesDuration = [];
+        activities.forEach(function(activity) {
+          let activityResume = getActivityResume(activity);
+          activitiesDuration.push({ activityId: activity.activityId, duration: activityResume.avgDuration });
+          projectDuration += activityResume.avgDuration;
+        });
+
+        // Duración media total del proyecto
+        projectDuration /= activities.length;
+        return { duration: projectDuration, activities: activitiesDuration };
+      })
+      .then(function(result) {
+        res.send(result);
+      })
+      .catch(function(err) {
+        console.log(err);
+        next(new restify.NotFoundError('No activities with that identifier has been found'));
+      });
+  },
+
+  /**
+   * Tiempo por usuarios
+   *
+   * @param req
+   * @param res
+   */
+  readByUsers: function(req, res) {
+    const project = req.project;
+    const users = req.project.players;
+    let activityFindCriteria = { activityId: { $in: project.activities } };
+    Activity.find(activityFindCriteria)
+      .then(function(activities) {
+        // Inicialización del array con objeto de cada usuario
+        // { userId: String, total: Number }
+        let usersData = _.map(users, (user) => {
+          return { userId: user.user, total: 0 };
+        });
+
+        activities.forEach(function(activity) {
+          _.map(activity.users, (user) => {
+            if (user.tries[user.tries.length - 1]) {
+              let userData = _.find(usersData, { userId: user.user });
+              userData.total += user.tries[user.tries.length - 1].duration;
+            }
+          });
+        });
+
+        return usersData;
+      })
+      .then(function(result) {
+        res.send(result);
+      })
+      .catch(function(err) {
+        console.log(err);
+        next(new restify.NotFoundError('No activities with that identifier has been found').body);
+      });
+  },
+  /**
+   * Tiempo por usuario ordenado por actividad
+   *
+   * @param req
+   * @param res
+   */
+  readByUserId: function(req, res) {
+    const project = req.project;
+    let userId = req.params.userId;
+    let activityFindCriteria = { 'users.user': userId, activityId: { $in: project.activities } };
+    Activity.find(activityFindCriteria)
+      .then(function(activities) {
+        let activitiesData = [];
+        activities.forEach(function(activity) {
+          let user = _.find(activity.users, (val) => val.user == userId);
+          activitiesData.push({ activityId: activity.activityId, duration: user.tries[user.tries.length - 1].duration });
+        });
+
+        return activitiesData;
+      })
+      .then(function(activitiesData) {
+        let result = {
+          userId: userId,
+          activitiesData
+        };
+
+        res.send(result);
+      });
+
+    //User.findOne({ _id: userId }, function(err, user) {
+    //  if (err) {
+    //    return res.send(err);
+    //  } else if (!user) {
+    //    res.send(new restify.NotFoundError('No user with that identifier has been found').body);
+    //  }
+    //});
+  }
 };
+
+exports.timing = timingController;
 
 const usersController = {
   readAll: function(req, res) {

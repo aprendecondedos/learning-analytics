@@ -37,6 +37,9 @@ module.exports = function(app) {
   //app.post('/api/project', api.log, project.process);
   app.param('projectId', project.projectById);
   app.get('/api/project/:projectId', project.read);
+  app.get('/api/project/:projectId/timing', project.timing.read);
+  app.get('/api/project/:projectId/timing/users', project.timing.readByUsers);
+  app.get('/api/project/:projectId/timing/user/:userId', project.timing.readByUserId);
   app.get('/api/project/:projectId/users', project.users.readAll);
   app.get('/api/project/:projectId/users/:userId', project.users.readByUserId);
 

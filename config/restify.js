@@ -51,16 +51,7 @@ module.exports.initFormatterHeaders = function(app) {
 
       // Does the client *explicitly* accepts application/json?
       var sendPlainText = (req.header('Accept').split(/, */).indexOf('application/json') === -1);
-
-      // Send as plain text
-      if (sendPlainText) {
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      }
-
-      // Send as JSON
-      if (!sendPlainText) {
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      }
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
       if (body instanceof Error) {
         res.statusCode = body.statusCode || 500;
