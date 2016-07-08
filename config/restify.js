@@ -24,6 +24,14 @@ module.exports.initRestify = function(app) {
   app.use(restify.bodyParser({ mapParams: false }));
   app.use(restify.queryParser());
   app.use(restify.CORS());
+  app.opts(/.*/, function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', req.header('Access-Control-Request-Method'));
+    res.header('Access-Control-Allow-Headers', req.header('Access-Control-Request-Headers'));
+    res.send(200);
+    return next();
+  });
+
   app.use(restify.jsonp());
   app.use(restify.gzipResponse());
   app.pre(restify.pre.sanitizePath());

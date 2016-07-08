@@ -19,7 +19,7 @@ const User = webConnection.model('User', Schema);
  */
 exports.projectById = function(req, res, next, id) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new restify.NotFoundError('Project is invalid'));
+    res.send(JSON.stringify(new restify.NotFoundError('Project is invalid')));
   }
 
   //
@@ -27,7 +27,7 @@ exports.projectById = function(req, res, next, id) {
     if (err) {
       return next(err);
     } else if (!project) {
-      return next(new restify.NotFoundError('No project with that identifier has been found'));
+      res.send(JSON.stringify(new restify.NotFoundError('No project with that identifier has been found')));
     }
 
     //req.project = project;
@@ -142,9 +142,6 @@ exports.read = function(req, res) {
     });
 };
 
-//app.get('/api/project/:projectId/timing', project.timing.read);
-//app.get('/api/project/:projectId/timing/users', project.timing.readByUsers);
-//app.get('/api/project/:projectId/timing/user/:userId', project.timing.readByUserId);
 const timingController = {
   /**
    * Tiempo total del proyecto y por cada actividad
@@ -174,7 +171,7 @@ const timingController = {
       })
       .catch(function(err) {
         console.log(err);
-        next(new restify.NotFoundError('No activities with that identifier has been found'));
+        res.send(JSON.stringify((new restify.NotFoundError('No activities with that identifier has been found'))));
       });
   },
 
@@ -212,7 +209,7 @@ const timingController = {
       })
       .catch(function(err) {
         console.log(err);
-        next(new restify.NotFoundError('No activities with that identifier has been found').body);
+        res.send(JSON.stringify((new restify.NotFoundError('No activities with that identifier has been found'))));
       });
   },
   /**
@@ -230,27 +227,24 @@ const timingController = {
         let activitiesData = [];
         activities.forEach(function(activity) {
           let user = _.find(activity.users, (val) => val.user == userId);
-          activitiesData.push({ activityId: activity.activityId, duration: user.tries[user.tries.length - 1].duration });
+          activitiesData.push({
+            activityId: activity.activityId,
+            duration: user.tries[user.tries.length - 1].duration,
+            startDate: user.startTime,
+            finishDate: user.finishTime
+          });
         });
 
         return activitiesData;
       })
-      .then(function(activitiesData) {
+      .then(function(activities) {
         let result = {
           userId: userId,
-          activitiesData
+          activities
         };
 
         res.send(result);
       });
-
-    //User.findOne({ _id: userId }, function(err, user) {
-    //  if (err) {
-    //    return res.send(err);
-    //  } else if (!user) {
-    //    res.send(new restify.NotFoundError('No user with that identifier has been found').body);
-    //  }
-    //});
   }
 };
 
@@ -258,18 +252,111 @@ exports.timing = timingController;
 
 const usersController = {
   readAll: function(req, res) {
-    const userId = req.params.userId;
     const project = req.project;
-    const user = _.find(project.users, (o) => o.user == userId);
-    res.json(user);
+    let activityFindCriteria = { activityId: { $in: project.activities } };
+    //Activity.find(activityFindCriteria)
+    //  .then(function(activities) {
+    //
+    //  });
+    var result = {
+      users: [
+        {
+          userId: '23131nasjdnaB',
+          correct: 12,
+          failed: 0,
+          notAnswered: 3,
+          status: 'finished' // finished, pending, notstarted
+        }
+      ]
+    };
+    res.json(result);
   },
 
   readByUserId: function(req, res, next, id) {
-
+    const userId = req.params.userId;
+    const project = req.project;
+    console.log(project);
+    const user = _.find(project.players, (o) => o.user == userId);
   }
 };
 
 exports.users = usersController;
+
+/**
+ * Resultados sobre proyectos
+ *
+ * @type {{readAll: Function, readByUsers: Function}}
+ */
+const resultsController = {
+  readAll: function(req, res) {
+    const project = req.project;
+    let activityFindCriteria = { activityId: { $in: project.activities } };
+    //Activity.find(activityFindCriteria)
+    //  .then(function(activities) {
+    //
+    //  });
+    var result = {};
+    res.json(result);
+  },
+
+  readByUsers: function(req, res, next, id) {
+    const userId = req.params.userId;
+    const project = req.project;
+    let results = [];
+
+    // populate de usuarios del proyecto
+    project.players.map(function(user) {
+      results.push({
+        userId: user.user,
+        status: 'unstarted'
+      });
+    });
+
+    let activityFindCriteria = { activityId: { $in: project.activities } };
+    Activity.find(activityFindCriteria)
+      .then(function(activities) {
+        activities.forEach(function(activity, index) {
+          //let activityResume = getActivityResume(activity);
+          activity.users.map(function(user) {
+            let userResultIndex = _.findIndex(results, (o) => o.userId == user.user.toString());
+            if (userResultIndex !== -1) {
+              let userResult = results[userResultIndex];
+              //userResult.correct = user.tries;
+              userResult.correct = userResult.correct || 0;
+              userResult.failed = userResult.failed || 0;
+              if (user.isFinished) {
+                userResult.correct += Number(user.isCorrect); // 0, 1
+                userResult.failed += Number(!user.isCorrect); // 0, 1
+              }
+
+              userResult.notAnswered = (activities.length) - (userResult.correct + userResult.failed);
+              userResult.tries = user.tries.length;
+              userResult.status = user.isFinished ? 'finished' : 'pending';
+            }
+          });
+        });
+
+        return results;
+      })
+      .then(function(results) {
+        //console.log(results);
+        res.json(results);
+      });
+
+    //var result = [
+    //  {
+    //    userId: '23131nasjdnaB',
+    //    correct: 12,
+    //    failed: 0,
+    //    notAnswered: 3,
+    //    status: 'finished' // finished, pending, notstarted
+    //  }
+    //];
+    //res.json(result);
+  }
+};
+
+exports.results = resultsController;
 
 /**
  * Obtiene un resumen estadistico por actividad
