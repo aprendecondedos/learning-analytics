@@ -308,7 +308,10 @@ const resultsController = {
     project.players.map(function(user) {
       results.push({
         userId: user.user,
-        status: 'unstarted'
+        status: 'unstarted',
+        correct: 0,
+        failed: 0,
+        notAnswered: project.activities.length
       });
     });
 
@@ -321,7 +324,6 @@ const resultsController = {
             let userResultIndex = _.findIndex(results, (o) => o.userId == user.user.toString());
             if (userResultIndex !== -1) {
               let userResult = results[userResultIndex];
-              //userResult.correct = user.tries;
               userResult.correct = userResult.correct || 0;
               userResult.failed = userResult.failed || 0;
               if (user.isFinished) {
@@ -339,7 +341,6 @@ const resultsController = {
         return results;
       })
       .then(function(results) {
-        //console.log(results);
         res.json(results);
       });
 
