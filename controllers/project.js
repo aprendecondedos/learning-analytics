@@ -104,7 +104,6 @@ exports.read = function(req, res) {
       let duration = 0;
       let correct = 0;
       let failed = 0;
-      let finishedArr = [];
       let result = {};
       activities.forEach(function(activity, index) {
         let activityResume = getActivityResume(activity);
@@ -290,13 +289,50 @@ exports.users = usersController;
 const resultsController = {
   readAll: function(req, res) {
     const project = req.project;
+    let result = {
+      correct: 0,
+      failed: 0,
+      notAnswered: project.activities.length
+    };
     let activityFindCriteria = { activityId: { $in: project.activities } };
-    //Activity.find(activityFindCriteria)
-    //  .then(function(activities) {
     //
-    //  });
-    var result = {};
-    res.json(result);
+    Activity.find(activityFindCriteria)
+      .then(function(activities) {
+        let totalActivitiesDone = activities.length || 0;
+        let duration = 0;
+        let correct = 0;
+        let failed = 0;
+        let finishedArr = [];
+        let result = {};
+        let totalUsers = project.players.length;
+        activities.forEach(function(activity, index) {
+          let activityResume = getActivityResume(activity);
+          duration += activityResume.avgDuration;
+          correct += activityResume.correct;
+          failed += activityResume.failed;
+          finishedArr.push(activityResume.finished);
+        });
+
+        // resultados totales del proyecto
+        let notAnswered = (totalUsers * totalActivitiesDone) - (correct + failed);
+        let total = notAnswered + (correct + failed);
+        duration /= totalActivitiesDone;
+
+        return { duration, correct, failed, notAnswered, total };
+      })
+      .then(function(result) {
+        res.send(result);
+      })
+      .catch(function(err){
+        console.log(err);
+      });
+    //
+    result = {
+      correct: 0,
+      failed: 0,
+      notAnswered: project.activities.length
+    };
+    //res.json(result);
   },
 
   readByUsers: function(req, res, next, id) {
@@ -319,7 +355,6 @@ const resultsController = {
     Activity.find(activityFindCriteria)
       .then(function(activities) {
         activities.forEach(function(activity, index) {
-          //let activityResume = getActivityResume(activity);
           activity.users.map(function(user) {
             let userResultIndex = _.findIndex(results, (o) => o.userId == user.user.toString());
             if (userResultIndex !== -1) {
